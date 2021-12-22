@@ -1,0 +1,225 @@
+\documentclass[11pt]{article}
+\input{preambule}
+\usepackage{listings}
+\lstset{numbers=left, numberstyle=\tiny, stepnumber=1, numbersep=5pt}
+
+\author{Rb87}
+\title{Read Me }
+\date{}
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{Menus}
+\subsection{General Info}
+Menus are handled by the \texttt{menus.php} file. Each plugin has its own entry. There are two types of entries : \emph{menu} and \emph{submenu}. Each \emph{menu} is associated to a CPT, \emph{submenus} are not. Each \emph{menu} and \emph{submenu} entry call a function named \texttt{menu\_name\_page\_setup} lying inside \texttt{menu\_name/index\_menu\_name.php}.\\
+\noindent
+They are loaded if the corresponding plugin is activated, this is handle by the option \texttt{activated\_plugins}. \\
+
+There is one exception : the \texttt{RbWeb} menu, which is always present. It corresponds to the settings page that handle all other menus. It calls the function \texttt{Handle\_all\_menus} in the \texttt{activated\_plugins.php} file. 
+
+
+
+List of \emph{menus} and \emph{submenus}
+\begin{enumerate}
+\item Publications
+\begin{enumerate}
+\item Arxiv
+\item Bibtex
+\item Orcid
+\item HAL
+\item zotero
+\end{enumerate}
+\item Members
+\item Teams
+\item Jobs
+\end{enumerate}
+
+\subsection{How to add menu}
+
+In order to add a new \emph{menu}:
+\begin{enumerate}
+\item In \texttt{menus.php} add the following 
+\begin{lstlisting}
+if (in_array('NEW',get_option("activated_plugins"))){
+  add_action('admin_menu', 'add_menu_for_NEW');
+    function add_menu_for_NEWr() {
+      add_menu_page('NEW', //Menu Name
+	'NEW', // Menu label
+	'manage_options', // capability
+	'NEW',// slug
+	'NEW_page_setup',//function to call -> /NEW_folder/index_NEW.php
+	'NEW', // icon
+	'11'//position
+	 	);
+	}
+}
+\end{lstlisting}
+Every 'NEW' must be changed. 
+
+\item In \texttt{activated\_plugins.php} add, inside the \texttt{Handle\_all\_menus} functions
+\begin{lstlisting}
+<div>
+  <?php on_off_button('Name of the NEW menu','id of the NEW menu');?>
+</div>
+\end{lstlisting}
+\texttt{id of the NEW menu}  will be included in the option \texttt{activated\_plugins}.
+\texttt{Name of the NEW menu} is just the label written on the button. 
+\item In \texttt{index.php} add :
+\begin{lstlisting}
+if (in_array('id of the NEW menu',get_option("activated_plugins"))){
+	include(plugin_dir_path(__FILE__).'NEW_folder/index_NEW.php');
+
+}
+\end{lstlisting}
+the "id of the NEW menu" must be the same as the one included in the  \texttt{activated\_plugins.php} file. 
+
+\item Create a NEW\_folder, within a \texttt{index\_NEW.php} file, that must include the \texttt{NEW\_page\_setup} function
+
+\item Update the ReadMe file list of menus. 
+
+\end{enumerate}
+
+\subsection{Technical informations}
+Menus and plugins activations go through an ajax call. The 'send' button is useless, only used to refresh the page. Maybe it's not the best idea ? 
+
+\subsubsection{How ajax call work  ? }
+\begin{enumerate}
+\item PHP file.  Include the javascript file 
+\begin{lstlisting}
+function add_NEW_script(){
+  wp_register_script( 'NEW Slug of script', plugin_dir_url(__FILE__).'js/NEWname_of_file.js',array('jquery') -- dependencies not mandatory);
+  wp_enqueue_script( NEW Slug of script' );
+  }
+\end{lstlisting}
+\footnote{Still does not understand the utily of the two functions \texttt{register} and \texttt{enqueue}}
+and use the hook for admin script :
+\begin{lstlisting}
+add_action( 'admin_enqueue_scripts', 'add_NEW_script' );
+\end{lstlisting}
+
+\item PHP file (PHP$\rightarrow$ JS) Localize the script... that means you can pass PHP data to javascript. In the \texttt{add\_NEW\_script} function you add :
+\begin{lstlisting}
+wp_localize_script( 'NEW Slug of script', 'NEW_name_of_variable_localized', 
+	array( 'ajaxurl' => admin_url( 'admin-ajax.php' ), 'var2'=>php data ));
+\end{lstlisting}
+Now you can use in the javascript script the \texttt{NEW\_name\_of\_variable\_localized} list of variables. 
+
+\item JS file (JS, JS$\leftrightarrow$PHP) Create the ajax script :
+\begin{lstlisting}
+jQuery( document ).ready( function($) {
+    php_data = NEW_name_of_variable_localized.var2 // This is where the 
+		    localize is usefull !  (PHP->JS)
+    $.ajax({
+      url : NEW_name_of_variable_localized.ajaxurl,  
+      // method : 'POST', // GET par defaut
+      action  : NEW_ajax_action_name // (JS->PHP, this is where you can make
+      	 the php through JS )
+      success : function( return_data ) { // 
+        // console.log(return_data); (PHP->JS)
+      },
+      error : function( data ) { // en cas d'echec    
+        console.log( 'Erreur...' );
+      }
+    });
+
+});
+\end{lstlisting}
+
+\item (PHP) Register the \texttt{NEW\_ajax\_action\_name} and link it to your favorite php function 
+\begin{lstlisting}
+add_action( 'wp_ajax_NEW_ajax_action_name$', 'NEW_call_back_function' );
+\end{lstlisting}
+
+
+\item (PHP) And finally create \texttt{NEW\_call\_back\_function} :
+\begin{lstlisting}
+function NEW_call_back_function(){		
+  do php stuff, send JSON info :
+  wp_send_json_success( $php data );
+}
+\end{lstlisting}
+
+
+
+For the menu case here are the references of the preceeding function : 
+\begin{itemize}
+\item add\_NEW\_script = activated\_plugin\_script\_and\_style (activated\_plugins.php)
+\begin{itemize}
+\item  NEW Slug of script = activated\_button\_js 
+\item NEWname\_of\_file = activated\_button\_js.js (in plugin\_dir\_url(\_\_FILE\_\_).'js/)
+\item NEW\_name\_of\_variable\_localized = adminAjax
+\end{itemize}
+\item NEW\_ajax\_action\_name = activated\_button 
+\item NEW\_call\_back\_function = activate\_plugin\_ajax
+\end{itemize}
+
+
+
+
+
+\end{enumerate}
+
+
+\subsection{List of functions and files}
+
+PHP 
+
+\begin{itemize}
+\item \texttt{index.php}
+use only for including other php file. 
+
+
+\item \texttt{menus.php}
+\begin{itemize}
+\item \texttt{add\_menu\_for\_rbWeb}
+\item \texttt{add\_menu\_for\_publication}
+\begin{itemize}
+\item \texttt{add\_submenu\_for\_arxiv}
+\item \texttt{add\_submenu\_for\_Bibtex}
+\item \texttt{add\_submenu\_for\_zotero}
+\item \texttt{add\_submenu\_for\_orcid}
+\item \texttt{add\_submenu\_for\_hal}
+\end{itemize}
+\item \texttt{add\_menu\_for\_member}
+\item \texttt{add\_menu\_for\_job}
+\item \texttt{add\_menu\_for\_team}
+\end{itemize}
+\item \texttt{activated\_plugins.php}
+\begin{itemize}
+\item \texttt{activated\_plugin\_script\_and\_style}
+\item \texttt{activate\_plugin\_ajax} (ajax callback function) 
+\item \texttt{ on\_off\_button(\$name,\$id)} ( on/off button for the rbWeb plugin setting page, \$name$\rightarrow$ label shown, \$id once chosen it has to be similar in other pages eg. in index.php )
+\begin{itemize}
+\item \texttt{hide\_and\_show\_buttons()} (js function)
+\end{itemize}
+\item \texttt{Handle\_all\_menus} 
+\end{itemize}
+
+
+\end{itemize}
+
+JS 
+\begin{itemize}
+\item \texttt{activated\_button\_js.js}
+\begin{itemize}
+\item \texttt{hide\_and\_show\_buttons}
+\item ajax call for updating option \texttt{activated\_plugins}
+\end{itemize}
+\end{itemize}
+
+CSS 
+\begin{itemize}
+\item \texttt{css\\activated\_button\_css.css} (style the on/off buttons)
+
+\end{itemize}
+
+
+\section{Publications}
+\subsection{•}
+
+
+
+
+
+\end{document}
