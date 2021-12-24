@@ -12,13 +12,13 @@
   margin-right: auto;
 }
 
-td, th {
+#myTable td, th {
   border: 1px solid rgba(0,0,0,0.1) ;
   padding: 0.5rem;
 
 }
 
-tbody tr:hover{
+#myTable tbody tr:hover{
   background-color: rgba(17,52,80,0.2);
 }
 

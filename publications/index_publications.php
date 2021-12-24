@@ -12,7 +12,9 @@ function add_common_css_for_publication(){
 
   wp_enqueue_script('table_data_save', plugins_url().'/rbWeb/publications/js/insert_table_in_database.js');
   wp_localize_script( 'table_data_save', 'adminAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' )));
+
   wp_enqueue_script('table_creation', plugins_url().'/rbWeb/publications/js/create_table.js');
+
 }
 
 
@@ -29,6 +31,12 @@ function add_side_form_fill_ajax(){
   	wp_enqueue_script( 'side_form_fill_ajax' );
   	wp_localize_script( 'side_form_fill_ajax', 'adminAjax', 
 	array( 'ajaxurl' => admin_url( 'admin-ajax.php' ), 'var2'=>'php data' ));
+
+
+  wp_enqueue_script('fetch_publication_api', plugins_url('js',__FILE__).'/get_acf_from_api.js');
+  wp_localize_script( 'fetch_publication_api', 'restAPI', 
+    array( 'restURL' => rest_url(), 
+      'totalPub'=>wp_count_posts('publication')));
 }
 
 if (isset($_GET['page'])){
@@ -69,27 +77,112 @@ function actualize_publication(){
   // update_field('publication_doi', $_POST['DOI'.strval($i)],$inserted_post_id);
 }
 
+  function my_pre_get_posts( $query ) {
   
+  // do not modify queries in the admin
+  if (isset($_GET['page'])){
+    if ($_GET['page']=='publications'){
+
+  // only modify queries for 'event' post type
+      if( $query->query_vars['post_type'] == 'publication') {
+      
+        $query->set('orderby', 'meta_value'); 
+        $query->set('meta_key', 'publication_dop');   
+        $query->set('order', 'DESC'); 
+        
+      }
+    // return
+      return($query);
+    }
+  else
+  {
+    return($query);
+  }
+  }
+
+}
+
+add_action('pre_get_posts', 'my_pre_get_posts');
+function acf_to_rest_api($response, $post, $request) {
+    if (!function_exists('get_fields')) return $response;
+    if (isset($post)) {
+        $acf = get_fields($post->id);
+        $response->data['acf'] = $acf;
+    }
+    return $response;
+}
+add_filter('rest_prepare_publication', 'acf_to_rest_api', 10, 3);
 
 
-	
+	add_action('init','acfform');
+  function acfform(){
+    if (isset($_GET['id'])){
+      
+   acf_form_head(); }
+  
+  }
 
 
 
 function publication_page_setup(){
+  
+  
+ if (isset($_GET['id'])){
+  $id=$_GET['id'];
+  
+  $tags=explode(';', get_field('pub_test', $id)) ;
+ wp_set_post_tags( $id, $tags,  false );
+   
+ 
+?>
+<style type="text/css">
+    #acf-form{
+      border: 1px solid black;
+      width: 90%;
+      margin:auto;
+      margin-top:10px;
+    }
+    #acf-form input{
+      border: 1px solid black;
+
+    }
+    #acf-form input[type=submit]{
+      margin: 10px;
+
+    }
+
+</style>
+<div id="primary" class="content-area">
+    <div id="content" class="site-content" role="main">
+    
+    <?php acf_form(array(
+        'post_id'       => 700,
+        'submit_value'  => __('Update meta')
+    )); ?>
+    
+    </div><!-- #content -->
+</div><!-- #primary --><?php
+}else{
 
 	?>
 	<h1>Publications </h1>
+
+    <form>
+      <label>Number of publications </label>
+      <select name="cars" id="cars">
+  <option value="10">10</option>
+  <option value="50">50</option>
+  <option value="all">All</option>
+    </select>
+    </form>
 	 <div class='container' >
+
     
-      <table id="main_table"  style="">
+      <table id="main_table">
         <thead>
           <tr>
-
             <th>title</th>
-            <th>authors</th>
             <th>Year</th>
-            
           </tr>
     </thead>
         <tbody>
@@ -102,15 +195,16 @@ function publication_page_setup(){
     	// echo(get_field('publication_title',get_the_id()));
     	?>
 	    <tr class="row" onClick=AjaxFunction(this.id) id=<?php echo('publication_'.$id);?> >
-        <td>  
-      		<input  type="text" name="title" value="<?php echo(get_field('publication_title',$id));?>" >
+        <td class='title'>   
+          <a href=<?php echo("admin.php?page=publications&id=".$id)?> > <?php echo(get_field('publication_title',$id));?></a>
+      		
       
         </td>
-        <td>
+   <!--      <td>
             <input type="text" name="authors" value="<?php echo( get_field('publication_authors',$id));?> ">  
-        </td>
-         <td>
-            <input type="text" name="dop" value="<?php echo( get_field('publication_dop',$id));?> ">  
+        </td> -->
+         <td class='year'>
+            <p> <?php echo( get_field('publication_dop',$id));?> </p>  
         </td>
   
          <?php
@@ -163,7 +257,7 @@ function fixWidthHelper(e, ui) {
 </script> 
 
 <?php
-
+}
 
 }
 

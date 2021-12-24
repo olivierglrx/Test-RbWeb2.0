@@ -80,11 +80,40 @@ function fill_orcid_table(orcid_num){
      
          },
          success: function(data2) {
-           result=data2.match(/:citation-value>[^<]*/g)[0].substring(16);
+            var publisher='';
+            var editor='';
+            var booktitle='';
+            var extraInfo='';
+            var ISBN='';
+            var link='';
+            var doi ='';
+            var year = ' ';
+            var abstract = ' ';
+            var keywords = ' ';
+            var volume = ' ';
+            var pages = ' ';
+            var type = 'article';
+            var journal ='';
+            var author ='';
+
+          result=data2.match(/:citation-value>[^<]*/g)
+          if (result==null){
+            // some of the entries are still not entered. 
+            // console.log(data2); 
+            title=data2.match(/common:title>[^<]*/g)[0].substring('common:title>'.length);
+            journal=data2.match(/journal-title>[^<]*/g)[0].substring('journal-title>'.length);
+            year=data2.match(/common:year>[^<]*/g)[0].substring('common:year>'.length);
+
+            
+
+          }else{
+            result=result[0].substring(16);
+          
           let regex=/([A-Za-z])+ *\=/g;
           result_min=result.replace(regex, replacerFunction)
-           console.log(result_min);
+           
            bib=cleaning_the_bib(result_min);
+           
            parse=bibtexParse.toJSON(bib)[0]['entryTags'];
            
            var journal =capitalize( parse['journal']);
@@ -93,59 +122,39 @@ function fill_orcid_table(orcid_num){
            if (parse['doi']){
              var doi = parse['doi'].replace('\{','').replace('\}','');
            }
-           else{
-             var doi ='';
-           }
+
            if(parse['year']){
              var year = parse['year'];
            }
-           else{
-             var year = ' ';
-           }
+
 
            if(parse['abstract']){
                var abstract = Capitalize_first_letter(parse['abstract']);
            }
-           else{
-             var abstract = ' ';
-           }
+
 
            if(parse['keywords']){
              var keywords = parse['keywords'];
            }
-           else{
-             var keywords = ' ';
-           }
+
 
            if(parse['volume']){
              var volume = parse['volume'];
            }
-           else{
-             var volume = ' ';
-           }
+
 
            if(parse['pages']){
              var pages = parse['pages'].replace('--','-');
            }
-           else{
-             var pages = ' ';
-           }
+
 
 
            if(parse['type']){
-             var type = 'a'
+             var type =parse['type'];
            }
-           else{
-             var type = 'article';
-           }
-           var publisher='';
-           var editor='';
-           var booktitle='';
-           var extraInfo='';
-           var ISBN='';
-           var link='';
 
 
+         }
 
           insert_table_line([title, author, year, type, journal, doi, ISBN, volume, link, pages, keywords, publisher, editor, booktitle, abstract,extraInfo],i);
 

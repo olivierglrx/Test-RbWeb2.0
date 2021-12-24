@@ -16,7 +16,7 @@ Author URI: http://ww.rubidiumweb.fr/
 
 include('activated_plugins.php');
 include('menus.php');
-// testttt gitub;
+
 
 if (in_array('publication',get_option("activated_plugins"))){
 	include(plugin_dir_path(__FILE__).'publications/index_publications.php');

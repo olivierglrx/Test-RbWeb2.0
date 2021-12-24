@@ -189,7 +189,22 @@ function cleaning_the_bib(str){
 .replaceAll('\{X\}','X')
 .replaceAll('\{Y\}','Y')
 .replaceAll('\{Z\}','Z')
-.replaceAll('\\^\\i','î');
+.replaceAll('\\^\\i','î')
+.replaceAll('\{\\\"\\i}','ï')
+.replaceAll('\{é\}','é')
+.replaceAll('\{\\`\{a\}}','à')
+.replaceAll('\{\\\"e\}','ë')
+.replaceAll('\{\\\^e\}','ê')
+.replaceAll('\{\\i\}','ï')
+.replaceAll('\{\\\`a\}','à')
+.replaceAll('\{\\\'\\i}','ì')
+.replaceAll('\{ó\}','ó');
+
+
+
+
+
+
 
   return(x);
 

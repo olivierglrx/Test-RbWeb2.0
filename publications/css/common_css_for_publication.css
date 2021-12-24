@@ -17,8 +17,7 @@
 
 
 
-
-#message{
+.message_container #message{
   /*display:flex;*/
   width:50%;
   /*justify-content: space-around;*/

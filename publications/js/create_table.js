@@ -50,6 +50,9 @@ function insert_table_line(Data_list,id){
 
   Data_list.forEach(item => {
     var newCell = newRow.insertCell();
+    // still some braces remaining... annoying to replace it in js since the parser use some braces to parse
+    item =item.replaceAll('\{','').replaceAll('\}','');
+
     newText = document.createTextNode(item);
     newCell.appendChild(newText);
     if (i<max_visible_input-1){

@@ -43,7 +43,7 @@ jQuery(document).ready(function($){
                     title=element.title;
                     abstract=element.abstract;
                     link=element.url;
-                    year=element.year.match(/[0-9]{4}/);
+                    year=element.year.match(/[0-9]{4}/)[0];
                     
                     authors = element.authors.join(', ')
                 insert_table_line([title, authors, year, type, journal, doi, ISBN, volume, link, pages, keywords, publisher, editor, booktitle, abstract,extraInfo],index);
